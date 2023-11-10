@@ -7,6 +7,7 @@
 # This is my own work as defined by 
 #    the University's Academic Misconduct Policy.
 #
+import Die
 
 class Round():
     def __init__(self) -> None:
