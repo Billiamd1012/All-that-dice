@@ -7,7 +7,12 @@
 # This is my own work as defined by 
 #    the University's Academic Misconduct Policy.
 #
+import random
 
 class Die():
-    def __init__(self) -> None:
-        pass
+    def roll(self):
+        # will roll the die
+        self.__value = random.randint(1, 6)
+    def getValue(self):
+        # will return the value of the die
+        return self.__value

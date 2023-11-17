@@ -7,13 +7,13 @@
 # This is my own work as defined by 
 #    the University's Academic Misconduct Policy.
 #
-import Game
+from Game import OddOrEven, Maxi, Bunco
 import Player
 
 
-class AllThatDice():
+class AllThatDice:
     def __init__(self):
-        self.__players = []
+        self.players = []
         self.__previousGames = []
         self.__currentGame = None
         self.runText = "What would you like to do?\n (r) register a new player\n (s) show the leader board\n (p) play a game\n (q) quit"
@@ -38,21 +38,46 @@ class AllThatDice():
                 self.run()
     def registerPlayer(self, name):
         # will register a player with the application
-        for player in self.__players:
+        for player in self.players:
             if player.getName() == name:
                 print("Sorry, the name is already taken.\n")
                 self.run()
-        self.__players.append(Player.Player(name))
+        self.players.append(Player.Player(name))
         print("Welcome, " + name + "!\n")
         self.run()
     def showLeaderBoard(self):
         # will show the leaderboard
         pass
     def playGame(self):
-        self.__currentGame = Game.Game()
+        # will start a game and register the players
+        print("Which game would you like to play? \n(o) Odd-or-Even \n(m) Maxi \n(b) Bunco")
+        gameType = input(">")
+        if gameType == "o":
+            self.__currentGame = OddOrEven(self.players)
+            print("Let’s play the game of " + self.__currentGame.getGameType() + "!")
+        elif gameType == "m":
+            if len(self.players) > 3:
+                self.__currentGame = Maxi(self.players)
+                print("Let’s play the game of " + self.__currentGame.getGameType() + "!")
+            else:
+                print("Not enough players to play Maxi.")
+                self.playGame()
+        elif gameType == "b":
+            if len(self.players) > 2:
+                self.__currentGame = Bunco(self.layers)
+                print("Let’s play the game of " + self.__currentGame.getGameType() + "!")
+            else:
+                print("Not enough players to play Bunco.")
+                self.playGame()
+        else:
+            print("Invalid input")
+            self.playGame()
+        
+        # register players
+        self.__currentGame.selectPlayers()
     def quit(self):
         # will quit the application
-        pass
+        print("Thank you for playing All-That-Dice!")
 
 
 my_all_that_dice = AllThatDice()

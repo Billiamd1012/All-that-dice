@@ -10,5 +10,40 @@
 import Die
 
 class Round():
-    def __init__(self) -> None:
-        pass
+    def __init__(self, numDice, strength):
+        self.__dice = []
+        self.__dieValues = []
+        self.__strength = strength
+        self.__numDice = numDice
+        for i in range(self.__numDice):
+            self.__dice.append(Die.Die())
+    def rollDice(self):
+        # will roll the dice
+        for die in self.__dice:
+            die.roll()
+    def showDice(self):
+        # will show the dice
+        for die in self.__dice:
+            dieFinal = die.getValue() + self.__strength
+            if dieFinal > 6:
+                dieFinal = dieFinal - 6
+            self.__dieValues.append(dieFinal)
+        return self.__dieValues
+    def showFaces(self):
+        # will show the die faces
+        dieFaces = ""
+        for value in self.__dieValues:
+            match value:
+                case 1:
+                    dieFaces += "⚀"
+                case 2:
+                    dieFaces += "⚁"
+                case 3:
+                    dieFaces += "⚂"
+                case 4:
+                    dieFaces += "⚃"
+                case 5:
+                    dieFaces += "⚄"
+                case 6:
+                    dieFaces += "⚅"
+        return dieFaces
