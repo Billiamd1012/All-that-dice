@@ -47,31 +47,37 @@ class AllThatDice:
         self.run()
     def showLeaderBoard(self):
         # will show the leaderboard
-        pass
+        for player in self.players:
+            print(player.getName() + " has " + str(player.getChips()) + " chips.")
+        self.run()
     def playGame(self):
         # will start a game and register the players
         print("Which game would you like to play? \n(o) Odd-or-Even \n(m) Maxi \n(b) Bunco")
         gameType = input(">")
         if gameType == "o":
-            self.__currentGame = OddOrEven(self.players)
-            print("Let’s play the game of " + self.__currentGame.getGameType() + "!")
+            if len(self.players) >= 1:
+                self.__currentGame = OddOrEven(self.players)
+                print("Let’s play the game of " + self.__currentGame.getGameType() + "!")
+            else:
+                print("Not enough players to play Odd or Even.")
+                self.run()
         elif gameType == "m":
             if len(self.players) > 3:
                 self.__currentGame = Maxi(self.players)
                 print("Let’s play the game of " + self.__currentGame.getGameType() + "!")
             else:
                 print("Not enough players to play Maxi.")
-                self.playGame()
+                self.run()
         elif gameType == "b":
             if len(self.players) > 2:
                 self.__currentGame = Bunco(self.layers)
                 print("Let’s play the game of " + self.__currentGame.getGameType() + "!")
             else:
                 print("Not enough players to play Bunco.")
-                self.playGame()
+                self.run()
         else:
             print("Invalid input")
-            self.playGame()
+            self.run()
         
         # register players
         self.__currentGame.selectPlayers()
