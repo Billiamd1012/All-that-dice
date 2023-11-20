@@ -62,25 +62,25 @@ class AllThatDice:
                 print("Not enough players to play Odd or Even.")
                 self.run()
         elif gameType == "m":
-            if len(self.players) > 3:
+            if len(self.players) >= 3:
                 self.__currentGame = Maxi(self.players)
                 print("Let’s play the game of " + self.__currentGame.getGameType() + "!")
             else:
                 print("Not enough players to play Maxi.")
                 self.run()
         elif gameType == "b":
-            if len(self.players) > 2:
-                self.__currentGame = Bunco(self.layers)
+            if len(self.players) >= 2:
+                self.__currentGame = Bunco(self.players)
                 print("Let’s play the game of " + self.__currentGame.getGameType() + "!")
             else:
                 print("Not enough players to play Bunco.")
                 self.run()
         else:
             print("Invalid input")
-            self.run()
         
         # register players
         self.__currentGame.selectPlayers()
+        self.run()
     def quit(self):
         # will quit the application
         print("Thank you for playing All-That-Dice!")

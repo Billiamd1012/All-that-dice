@@ -25,11 +25,11 @@ class Game:
             print("What is the name of the player ?")
             name = input(">")
             self.setPlayer(name)
-        if self.__minPlayers > 1:
+        elif self.__minPlayers > 1:
             print(f"How many players ({self.__minPlayers}-{self.__maxPlayers})?")
             try:
                 numPlayers = int(input(">"))
-                if numPlayers > self.__maxPlayers or numPlayers < self.__minPlayers:
+                if numPlayers > self.__maxPlayers or numPlayers < self.__minPlayers or numPlayers > len(self.allPlayers):
                     raise TypeError
             except ValueError:
                 print("Please enter a number")
@@ -74,20 +74,24 @@ class Game:
             self.bidChips(player)
 
 
-    def winner(self, player):
+    def endGame(self, winner):
         # will cash out the winner and display winning message
-        print(f"Congratulations {player.getName()}, you win!")
-        for players in self._players:
-            players[0].increaseChips(players[1])  
+        print(f"Congratulations {winner.getName()}, you win!")
+        # get the sum of the pot
+        pot = 0
+        for player in self._players:
+            pot += self._players[player]
+        for player in self._players.keys():
+            if player == winner:
+                player.increaseChips(pot)
+            else:
+                player.decreaseChips(self._players[player])
 
     def startRound(self):
         # will start the round
         print("Let the game begin!")
         self.nextRound()
 
-    def endGame(self):
-        # will end the game
-        pass
     def getGameType(self):
         # will return the game type
         return self.__gameType
@@ -152,15 +156,14 @@ class OddOrEven(Game):
             match guess:
                 case "e":
                     if dieValue % 2 == 0:
-                        self.winner(player)
+                        self.endGame(player)
                     else:
                         self.loser(player)
                 case "o":
                     if dieValue % 2 == 1:
-                        self.winner(player)
+                        self.endGame(player)
                     else:
                         self.loser(player)
-            self.endGame()
 
 class Bunco(Game):
     def __init__(self, players):
@@ -168,24 +171,33 @@ class Bunco(Game):
         numDice = 3
         minPlayers = 2
         maxPlayers = 4
+        super().__init__(players, gameType, minPlayers, maxPlayers, numDice)
         self.__roundNumber = 1
         self.__playerScores = {}
-        super().__init__(players, gameType, minPlayers, maxPlayers, numDice)
+
+    def setPlayerScores(self):
+        for player in self._players:
+            self.__playerScores[player] = [[], 0, 0, 0]
+    def TestSetPlayerScores(self):
+        self.__playerScores = {Player.Player("Bill"):[[40,20,10,10,20,10],110,3,2], Player.Player("Bobby"):[[40,20,10,10,20,10],110,3,2], Player.Player("Bob"):[[40,20,0,30,20,10],120,2,4]}
     def startRound(self):
+        self.setPlayerScores()
         print("Let the game begin!")
         for i in range(6):
             self.nextRound()
             self.__roundNumber += 1
+        self.showGameSummary()
 
     def nextRound(self):
         # will start the next round
         print(f"<Round {self.__roundNumber}>")
         currentRound = Round.Round(self._numDice)
-        roundWinner = {"":0}
+        roundWinner = {"":-1}
         # loop through players 
         for player in self._players:
             playerRoundScore = 0
-            print(f"It's {player[0].getName()}'s turn")
+            playerRoundBuncos = 0
+            print(f"It's {player.getName()}'s turn")
             while playerRoundScore < 21:
                 strength = self.playerThrow()
                 currentRound.rollDice()
@@ -196,9 +208,9 @@ class Bunco(Game):
                 if dieValues[0] == dieValues[1] == dieValues[2]:
                     if dieValues[0] == self.__roundNumber:
                         print("Bunco!")
+                        playerRoundBuncos += 1
                         turnScore += 21
                     else:
-                        print("Mini Bunco!")
                         turnScore += 5
                 if dieValues[0] == self.__roundNumber:
                     turnScore += 1
@@ -210,11 +222,86 @@ class Bunco(Game):
                 print(f"You earned {turnScore} points, {playerRoundScore} points in total.")
                 if turnScore == 0:
                     break
-            self.__playerScores[player] = playerRoundScore
+            gameScore = self.__playerScores[player][1] + playerRoundScore
+            buncos = self.__playerScores[player][2] + playerRoundBuncos
+
+            self.__playerScores[player][0].append(playerRoundScore)
+            self.__playerScores[player][1] = gameScore
+            self.__playerScores[player][2] = buncos
+            
             if playerRoundScore > roundWinner[list(roundWinner.keys())[0]]:
                 roundWinner = {player:playerRoundScore}
             elif playerRoundScore == roundWinner[list(roundWinner.keys())[0]]:
-                roundWinner = {max(self.__playerScores, key=lambda key: self.__playerScores[key])}
+                roundWinner = {max(self.__playerScores, key=lambda key: self.__playerScores[key][0][self.__roundNumber-1]): self.__playerScores[max(self.__playerScores, key=lambda key: self.__playerScores[key][0][self.__roundNumber-1])]}
+        first_key, _ = next(iter(roundWinner.items()), (None, None))
+        print(f"{first_key.getName()} is the winner in Round {self.__roundNumber}!")
+        self.__playerScores[first_key][3] += 1
+
+    def showGameSummary(self):
+        # will show the game summary
+        playerCount = len(self.__playerScores)
+        playerNames = []
+        roundScores = []
+        totalScores = []
+        buncos = []
+        for player in self.__playerScores:
+            playerNames.append(player.getName())
+            roundScores.append(self.__playerScores[player][0])
+            totalScores.append(self.__playerScores[player][1])
+            buncos.append(self.__playerScores[player][2])
+        print("====="+"=========="*(playerCount))
+        nameOutput = "Round"
+        for player in playerNames:
+            nameOutput += " "*(10-len(player))+ f"{player}"
+        print(nameOutput)
+        print("====="+"=========="*(playerCount))
+        for i in range(6):
+            roundOutput = f"    {i+1}"
+            for j in range(playerCount):
+                roundOutput += " "*(10-len(str(roundScores[j][i]))) + f"{roundScores[j][i]}"
+            print(roundOutput)
+        print("====="+"=========="*(playerCount))
+        totalOutput = "Total"
+        for i in range(playerCount):
+            totalOutput += " "*(10-len(str(totalScores[i]))) + f"{totalScores[i]}"
+        print(totalOutput)
+        print("====="+"=========="*(playerCount))
+        buncoOutput = "Buncos"
+        for i in range(playerCount):
+            if i == 0:
+                buncoOutput += " "*(9-len(str(buncos[i]))) + f"{buncos[i]}" 
+            else:
+                buncoOutput += " "*(10-len(str(buncos[i]))) + f"{buncos[i]}" 
+        print(buncoOutput)
+        print("====="+"=========="*(playerCount))
+        winner = self._findWinner()
+        if winner != False:
+            print(f"{winner.getName()} won {self.__playerScores[winner][3]} rounds, scoring {self.__playerScores[winner][1]} points, with {self.__playerScores[winner][2]} Buncos.")
+        self.endGame(winner)
+        
+    def _findWinner(self):
+        # will find the winner
+        #first check self.__playerScores to see if someone has won the most number of rounds
+        #if not check self.__playerScores to see if someone has the highest score
+        #if not check self.__playerScores to see if someone has the most buncos
+        #if not print a tie between the players
+        winner = None
+        for player in self.__playerScores:
+            if winner == None:
+                winner = player
+            elif self.__playerScores[player][3] > self.__playerScores[winner][3]:
+                winner = player
+            elif self.__playerScores[player][3] == self.__playerScores[winner][3]:
+                if self.__playerScores[player][1] > self.__playerScores[winner][1]:
+                    winner = player
+                elif self.__playerScores[player][1] == self.__playerScores[winner][1]:
+                    if self.__playerScores[player][2] > self.__playerScores[winner][2]:
+                        winner = player
+                    elif self.__playerScores[player][2] == self.__playerScores[winner][2]:
+                        print("Tie between " + player.getName() + " and " + winner.getName())
+                        return False
+        return winner
+
 
 class Maxi(Game):
     def __init__(self, players):
@@ -223,10 +310,63 @@ class Maxi(Game):
         minPlayers = 3
         maxPlayers = 5
         super().__init__(players, gameType, minPlayers, maxPlayers, numDice)
+        self.__playersLeft = []
+    
+    def testSetPlayerLeft(self):
+        self._players = {Player.Player("Bill"):50, Player.Player("Bob"):50, Player.Player("Bobby"):50}
+
+    def startRound(self):
+        # will start the round
+        for player in self._players:
+            self.__playersLeft.append(player)
+        print("Let the game begin!")
+        while len(self.__playersLeft) > 1:
+            self.nextRound()
+            if len(self.__playersLeft) == 1:
+                self.endGame(self.__playersLeft[0])
+                break
+            playersLeft = ""
+            for player in self.__playersLeft:
+                playersLeft += ", " +player.getName()
+            print(f"Players remaining: {playersLeft[2:]}")
+
+    def nextRound(self):
+        # will start the next round
+        currentRound = Round.Round(self._numDice)
+        playerScores = {}
+        for player in self.__playersLeft:
+            print(f"It's {player.getName()}'s turn")
+            strength = self.playerThrow()
+            currentRound.rollDice()
+            dieValues = currentRound.showDice(strength)
+            print(currentRound.showFaces())
+            playerScores[player] = sum(dieValues)
+        # find max score from player scores then remove all players from self.__playersLeft that don't have that score
+        maxScore = max(playerScores, key=lambda key: playerScores[key])
+        for player in self.__playersLeft:
+            if playerScores[player] != playerScores[maxScore]:
+                self.__playersLeft.remove(player)
 
 
 # testOddOrEven = OddOrEven([Player.Player("Bill"), Player.Player("Bob")])
 # testOddOrEven.setPlayer("Bill")
 
-testBunco = Bunco([Player.Player("Bill"), Player.Player("Bob"), Player.Player("Bobby")])
-testBunco.selectPlayers()
+#testBunco = Bunco([Player.Player("Bill"), Player.Player("Bob"), Player.Player("Bobby")])
+#testBunco.selectPlayers()
+# testBunco.TestSetPlayerScores()
+# testBunco.showGameSummary()
+
+# players = {Player.Player("Bill"): 10, Player.Player("Bob"): 20, Player.Player("Bobby"): 30}
+# # print(max(players, key=lambda key: players[key]).getName())
+# roundWinner = {max(players, key=lambda key: players[key]): players[max(players, key=lambda key: players[key])]}
+# first_key, _ = next(iter(roundWinner.items()), (None, None))
+# print(first_key)
+
+
+def testMaxi():
+    maxiTest = Maxi([Player.Player("Bill"), Player.Player("Bob"), Player.Player("Bobby")])
+    maxiTest.testSetPlayerLeft()
+    maxiTest.startRound()
+
+if __name__ == "__main__":
+    testMaxi()

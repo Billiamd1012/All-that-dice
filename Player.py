@@ -22,3 +22,4 @@ class Player():
         if self.__chips - amount < 0:
             return False
         self.__chips -= amount
+    
