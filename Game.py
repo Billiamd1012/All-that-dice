@@ -24,7 +24,7 @@ class Game:
         if self.__minPlayers == 1:
             print("What is the name of the player ?")
             name = input(">")
-            self.setPlayer(name)
+            self.__setPlayer(name)
         elif self.__minPlayers > 1:
             print(f"How many players ({self.__minPlayers}-{self.__maxPlayers})?")
             try:
@@ -41,10 +41,10 @@ class Game:
             while playerCount < numPlayers + 1:
                 print("What is the name of player #" + str(playerCount) + "?")
                 name = input(">")
-                if self.setPlayer(name):
+                if self.__setPlayer(name):
                     playerCount += 1
         self.startRound()
-    def setPlayer(self, name):
+    def __setPlayer(self, name):
         for player in self.allPlayers:
             if player.getName() == name:
                 self._players[player] = self.bidChips(player)
@@ -178,8 +178,7 @@ class Bunco(Game):
     def setPlayerScores(self):
         for player in self._players:
             self.__playerScores[player] = [[], 0, 0, 0]
-    def TestSetPlayerScores(self):
-        self.__playerScores = {Player.Player("Bill"):[[40,20,10,10,20,10],110,3,2], Player.Player("Bobby"):[[40,20,10,10,20,10],110,3,2], Player.Player("Bob"):[[40,20,0,30,20,10],120,2,4]}
+    
     def startRound(self):
         self.setPlayerScores()
         print("Let the game begin!")
@@ -233,9 +232,12 @@ class Bunco(Game):
                 roundWinner = {player:playerRoundScore}
             elif playerRoundScore == roundWinner[list(roundWinner.keys())[0]]:
                 roundWinner = {max(self.__playerScores, key=lambda key: self.__playerScores[key][0][self.__roundNumber-1]): self.__playerScores[max(self.__playerScores, key=lambda key: self.__playerScores[key][0][self.__roundNumber-1])]}
-        first_key, _ = next(iter(roundWinner.items()), (None, None))
-        print(f"{first_key.getName()} is the winner in Round {self.__roundNumber}!")
-        self.__playerScores[first_key][3] += 1
+        if roundWinner[list(roundWinner.keys())[0]] == 0:
+            print("It was a tie this round")
+        else:
+            first_key, _ = next(iter(roundWinner.items()), (None, None))
+            print(f"{first_key.getName()} is the winner in Round {self.__roundNumber}!")
+            self.__playerScores[first_key][3] += 1
 
     def showGameSummary(self):
         # will show the game summary
