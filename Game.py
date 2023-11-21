@@ -13,7 +13,6 @@ import Player
 class Game:
     def __init__(self, players, gameType, minPlayers, maxPlayers, numDice):
         self._players = {}
-        self.__rounds = []
         self.__gameType = gameType
         self.__minPlayers = minPlayers
         self.__maxPlayers = maxPlayers
@@ -86,7 +85,12 @@ class Game:
                 player.increaseChips(pot)
             else:
                 player.decreaseChips(self._players[player])
-
+        self.__winner = winner
+    def getWinner(self):
+        players = []
+        for player in self._players:
+            players.append(player)
+        return [players, self.__winner]
     def startRound(self):
         # will start the round
         print("Let the game begin!")

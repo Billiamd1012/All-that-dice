@@ -14,7 +14,7 @@ import Player
 class AllThatDice:
     def __init__(self):
         self.players = []
-        self.__previousGames = []
+        self.__games = []
         self.__currentGame = None
         self.runText = "What would you like to do?\n (r) register a new player\n (s) show the leader board\n (p) play a game\n (q) quit"
         print("Welcome to All-That-Dice!\nDeveloped by Alan Turing\nCOMP 1048 Object-Oriented Programming")
@@ -47,8 +47,20 @@ class AllThatDice:
         self.run()
     def showLeaderBoard(self):
         # will show the leaderboard
+        print("=============================")
+        print("Name       Played  Won  Chips")
+        print("=============================")
         for player in self.players:
-            print(player.getName() + " has " + str(player.getChips()) + " chips.")
+            # get games played and won
+            gamesPlayed = 0
+            gamesWon = 0
+            for game in self.__games:
+                if player in game[0]:
+                    gamesPlayed += 1
+                if player == game[1]:
+                    gamesWon += 1
+            print(player.getName() + " "*(11-len(player.getName())) + " "*(6-len(str(gamesPlayed))) + str(gamesPlayed) +" "*(5-len(str(gamesWon))) + str(gamesWon) + " "*(7-len(str(player.getChips())))+ str(player.getChips()))
+        print("=============================")
         self.run()
     def playGame(self):
         # will start a game and register the players
@@ -80,6 +92,7 @@ class AllThatDice:
         
         # register players
         self.__currentGame.selectPlayers()
+        self.__games.append(self.__currentGame.getWinner())
         self.run()
     def quit(self):
         # will quit the application
